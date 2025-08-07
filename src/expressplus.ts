@@ -1,6 +1,6 @@
 import { createServer } from 'node:http'
 
-class ExpressPlus {
+export class ExpressPlus {
     private routes: { [method: string]: { [path: string]: Function } } = {}
 
     private addRoute(method: string, path: string, handler: Function) {
