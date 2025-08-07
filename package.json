@@ -1,0 +1,21 @@
+{
+  "name": "@thong190103/expressplus",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./dist/expressplus.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepack": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.13.1",
+  "dependencies": {
+    "jiti": "^2.5.1",
+    "typescript": "^5.9.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.0"
+  }
+}
