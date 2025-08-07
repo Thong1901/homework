@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ExpressPlus = void 0;
 var node_http_1 = require("node:http");
 var ExpressPlus = /** @class */ (function () {
     function ExpressPlus() {
@@ -43,6 +44,7 @@ var ExpressPlus = /** @class */ (function () {
     };
     return ExpressPlus;
 }());
+exports.ExpressPlus = ExpressPlus;
 var app = new ExpressPlus();
 app.get('/users', function (req, res) {
     res.writeHead(200, { 'Content-Type': 'application/json' });
