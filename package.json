@@ -1,6 +1,6 @@
 {
   "name": "@thong190103/expressplus",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "./dist/expressplus.js",
   "scripts": {
