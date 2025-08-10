@@ -1,14 +1,29 @@
 {
   "name": "@thong190103/expressplus",
   "version": "1.0.4",
-  "description": "",
+  "description": "Express-like server and HTTP-style math utilities",
   "main": "./dist/expressplus.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+  "exports": {
+    ".": "./dist/expressplus.js",
+    "./express": "./dist/expressplus.js",
+    "./math": "./dist/utils.js"
   },
-  "keywords": [],
-  "author": "",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "node dist/testutils.js",
+    "build": "tsc",
+    "prepublishOnly": "pnpm build"
+  },
+  "keywords": [
+    "express",
+    "server",
+    "http",
+    "math",
+    "utilities"
+  ],
+  "author": "Thong190103",
   "license": "ISC",
   "packageManager": "pnpm@10.13.1",
   "dependencies": {

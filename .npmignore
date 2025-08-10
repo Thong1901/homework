@@ -1,3 +1,5 @@
 node_modules
 src/test.ts
 dist/test.js
+dist/testutils.js
+src/testutils.ts
