@@ -1,7 +1,7 @@
 import { createServer, IncomingMessage, ServerResponse } from 'node:http'
 import { parse } from 'node:url'
 
-class ExpressPlus {
+export class ExpressPlus {
     private routes: { [method: string]: { [path: string]: Function } } = {}
 
     private addRoute(method: string, path: string, handler: Function) {
@@ -90,4 +90,4 @@ app.delete('/users/:id', (req, res) => {
     res.writeHead(204)
     res.end()
 })
-export default ExpressPlus;
+export { ExpressPlus as default };
