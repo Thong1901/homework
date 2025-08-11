@@ -1,143 +1,162 @@
-export class MathUtils {
-    private routes: { [method: string]: { [path: string]: Function } } = {}
+import { createServer } from 'node:http'
 
-    constructor() {
-        // Initialize empty routes for each method
-        this.routes = {
-            'GET': {},
-            'POST': {},
-            'PUT': {},
-            'DELETE': {},
-            'PATCH': {}
-        }
-
-        // Register default operations
-        this.registerOperations();
-    }
-
-    private registerOperations() {
-        // Register sum operations
-        this.get('/sum', this.sum.bind(this));
-        this.post('/sum', this.sum.bind(this));
-        this.put('/sum', this.sum.bind(this));
-        this.delete('/sum', this.sum.bind(this));
-        this.patch('/sum', this.sum.bind(this));
-
-        // Register subtraction operations
-        this.get('/sub', this.sub.bind(this));
-        this.post('/sub', this.sub.bind(this));
-        this.put('/sub', this.sub.bind(this));
-        this.delete('/sub', this.sub.bind(this));
-        this.patch('/sub', this.sub.bind(this));
-
-        // Register multiplication operations
-        this.get('/mul', this.mul.bind(this));
-        this.post('/mul', this.mul.bind(this));
-        this.put('/mul', this.mul.bind(this));
-        this.delete('/mul', this.mul.bind(this));
-        this.patch('/mul', this.mul.bind(this));
-
-        // Register division operations
-        this.get('/div', this.div.bind(this));
-        this.post('/div', this.div.bind(this));
-        this.put('/div', this.div.bind(this));
-        this.delete('/div', this.div.bind(this));
-        this.patch('/div', this.div.bind(this));
-
-        // Register modulo operations
-        this.get('/mod', this.mod.bind(this));
-        this.post('/mod', this.mod.bind(this));
-        this.put('/mod', this.mod.bind(this));
-        this.delete('/mod', this.mod.bind(this));
-        this.patch('/mod', this.mod.bind(this));
-    }
-
-    private sum(...numbers: number[]): number {
-        if (numbers.length === 0) return 0;
-        return numbers.reduce((acc, num) => acc + num, 0);
-    }
-
-    private sub(first: number, ...rest: number[]): number {
-        if (rest.length === 0) return first;
-        return rest.reduce((acc, num) => acc - num, first);
-    }
-
-    private mul(number: number, ...rest: number[]): number {
-        if (rest.length === 0) return number;
-        return rest.reduce((acc, num) => acc * num, number);
-    }
-
-    private div(first: number, ...rest: number[]): number {
-        if (rest.length === 0) return first;
-        // Check for division by zero
-        if (rest.some(num => num === 0)) {
-            throw new Error("Division by zero is not allowed");
-        }
-        return rest.reduce((acc, num) => acc / num, first);
-    }
-
-    private mod(first: number, ...rest: number[]): number {
-        if (rest.length === 0) return first;
-        return rest.reduce((acc, num) => acc % num, first);
-    }
-
-    private addRoute(method: string, path: string, handler: Function) {
-        this.routes[method][path] = handler;
-    }
-
-    public get(path: string, handler: Function): void;
-    public get(path: string, ...numbers: number[]): number;
-    public get(path: string, ...args: any[]): any {
-        if (args.length === 1 && typeof args[0] === 'function') {
-            this.addRoute('GET', path, args[0]);
-            return;
-        }
-        return this.routes['GET'][path](...args);
-    }
-
-    public post(path: string, handler: Function): void;
-    public post(path: string, ...numbers: number[]): number;
-    public post(path: string, ...args: any[]): any {
-        if (args.length === 1 && typeof args[0] === 'function') {
-            this.addRoute('POST', path, args[0]);
-            return;
-        }
-        return this.routes['POST'][path](...args);
-    }
-
-    public put(path: string, handler: Function): void;
-    public put(path: string, ...numbers: number[]): number;
-    public put(path: string, ...args: any[]): any {
-        if (args.length === 1 && typeof args[0] === 'function') {
-            this.addRoute('PUT', path, args[0]);
-            return;
-        }
-        return this.routes['PUT'][path](...args);
-    }
-
-    public delete(path: string, handler: Function): void;
-    public delete(path: string, ...numbers: number[]): number;
-    public delete(path: string, ...args: any[]): any {
-        if (args.length === 1 && typeof args[0] === 'function') {
-            this.addRoute('DELETE', path, args[0]);
-            return;
-        }
-        return this.routes['DELETE'][path](...args);
-    }
-
-    public patch(path: string, handler: Function): void;
-    public patch(path: string, ...numbers: number[]): number;
-    public patch(path: string, ...args: any[]): any {
-        if (args.length === 1 && typeof args[0] === 'function') {
-            this.addRoute('PATCH', path, args[0]);
-            return;
-        }
-        return this.routes['PATCH'][path](...args);
-    }
+// Math functions
+export function sum(...numbers: number[]): number {
+    if (numbers.length === 0) return 0;
+    return numbers.reduce((acc, num) => acc + num, 0);
 }
 
-// Create a singleton instance
-const mathUtils = new MathUtils();
+export function sub(first: number, ...rest: number[]): number {
+    if (rest.length === 0) return first;
+    return rest.reduce((acc, num) => acc - num, first);
+}
 
-// Export both the class and singleton instance
-export default mathUtils;
+export function mul(number: number, ...rest: number[]): number {
+    if (rest.length === 0) return number;
+    return rest.reduce((acc, num) => acc * num, number);
+}
+
+export function div(first: number, ...rest: number[]): number {
+    if (rest.length === 0) return first;
+
+    // Check for division by zero
+    if (rest.some(num => num === 0)) {
+        throw new Error("Division by zero is not allowed");
+    }
+
+    return rest.reduce((acc, num) => acc / num, first);
+}
+
+const Mylib = { sum, sub, mul, div };
+
+export const server = createServer((req, res) => {
+    const url = req.url || '/'
+    const method = req.method || 'GET'
+
+    // Tạo hàm gửi
+    function sendJSON(statusCode: number, success: boolean, message: string, data: any = null) {
+        res.writeHead(statusCode, { 'Content-Type': 'application/json' })
+        const response = { success, status: statusCode, message, data: null }
+        if (data !== null) response.data = data
+
+        // kết thúc lệnh trả về
+        res.end(JSON.stringify(response))
+    }
+
+    if (method === 'GET') {
+        if (url === '/') sendJSON(200, true, 'Welcome to the Math API Server')
+        else if (url === '/sum') sendJSON(200, true, 'Sum operation endpoint - POST numbers array')
+        else if (url === '/sub') sendJSON(200, true, 'Subtract operation endpoint - POST numbers array')
+        else if (url === '/mul') sendJSON(200, true, 'Multiply operation endpoint - POST numbers array')
+        else if (url === '/div') sendJSON(200, true, 'Divide operation endpoint - POST numbers array')
+        else if (url === '/info') {
+            sendJSON(200, true, 'API Information', {
+                endpoints: ['/sum', '/sub', '/mul', '/div'],
+                methods: ['GET (info)', 'POST (calculate)'],
+                format: 'POST with [1,2,3] or {"data": [1,2,3]}'
+            })
+        }
+        else sendJSON(404, false, 'Endpoint not found')
+    }
+    else if (method === 'POST') {
+        if (url === '/sum' || url === '/sub' || url === '/mul' || url === '/div') {
+            let body = ''
+
+            // Lấy data
+            req.on('data', chunk => {
+                body += chunk.toString()
+            })
+
+            req.on('end', () => {
+                try {
+                    const payload = JSON.parse(body)
+
+                    // chấp nhận: [1,2,3] hoặc { "data": [1,2,3] }
+                    const numbers = Array.isArray(payload) ? payload : payload?.data
+
+                    if (!Array.isArray(numbers)) {
+                        sendJSON(400, false, 'Invalid data: expected array [1,2,3] or {"data": [1,2,3]}')
+                        return
+                    }
+                    if (numbers.length === 0) {
+                        sendJSON(400, false, 'Array cannot be empty')
+                        return
+                    }
+                    if (numbers.some(item => typeof item !== 'number' || isNaN(item))) {
+                        sendJSON(400, false, 'Invalid data: all items must be valid numbers')
+                        return
+                    }
+
+                    let result: number
+                    let operation: string
+                    try {
+                        switch (url) {
+                            case '/sum':
+                                result = Mylib.sum.apply(null, numbers)
+                                operation = 'Sum'
+                                break
+                            case '/sub':
+                                if (numbers.length === 0) throw new Error("At least one number is required")
+                                const [firstSub, ...restSub] = numbers
+                                result = Mylib.sub(firstSub, ...restSub)
+                                operation = 'Subtraction'
+                                break
+                            case '/mul':
+                                if (numbers.length === 0) throw new Error("At least one number is required")
+                                const [firstMul, ...restMul] = numbers
+                                result = Mylib.mul(firstMul, ...restMul)
+                                operation = 'Multiplication'
+                                break
+                            case '/div':
+                                if (numbers.length === 0) throw new Error("At least one number is required")
+                                const [firstDiv, ...restDiv] = numbers
+                                result = Mylib.div(firstDiv, ...restDiv)
+                                operation = 'Division'
+                                break
+                            default:
+                                sendJSON(404, false, 'Operation not found')
+                                return
+                        }
+
+                        sendJSON(200, true, `${operation} calculated successfully`, {
+                            result,
+                            operation: operation.toLowerCase(),
+                            input: numbers,
+                            calculation: `${operation} of [${numbers.join(', ')}] = ${result}`
+                        })
+
+                    } catch (error) {
+                        sendJSON(400, false, error instanceof Error ? error.message : 'Calculation error')
+                    }
+
+                } catch {
+                    sendJSON(400, false, 'Invalid JSON format')
+                }
+            })
+        }
+        else if (url === '/') sendJSON(405, false, 'Cannot POST to root path. Use /sum, /sub, /mul, or /div')
+        else sendJSON(404, false, 'Endpoint not found')
+    }
+    else {
+        sendJSON(405, false, `Method ${method} not allowed. Use GET or POST`)
+    }
+})
+
+// Export default
+export default { server, sum, sub, mul, div, Mylib }
+
+// Start server helper
+export function startServer(port: number = 3000) {
+    server.listen(port, () => {
+        console.log(`🚀 Math API Server running on http://localhost:${port}`)
+        console.log(`📚 Endpoints: GET|POST /sum /sub /mul /div`)
+        console.log(`📖 Info: GET /info`)
+        console.log(`💡 Usage: POST /sum with body [1,2,3] or {"data":[1,2,3]}`)
+    })
+    return server
+}
+
+// Auto start if run directly
+if (require.main === module) {
+    startServer(3000)
+}

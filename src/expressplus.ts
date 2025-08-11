@@ -1,7 +1,7 @@
 import { createServer, IncomingMessage, ServerResponse } from 'node:http'
 import { parse } from 'node:url'
 
-class ExpressPlus {
+export class ExpressPlus {
     private routes: { [method: string]: { [path: string]: Function } } = {}
 
     private addRoute(method: string, path: string, handler: Function) {
@@ -69,7 +69,7 @@ class ExpressPlus {
 
 const app = new ExpressPlus()
 
-app.get('/users', (req, res) => {
+app.get('/users', (req: IncomingMessage & { params?: any }, res: ServerResponse) => {
     res.writeHead(200, { 'Content-Type': 'application/json' })
     res.end(JSON.stringify({ user: [] }))
 })

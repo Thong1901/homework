@@ -12,7 +12,8 @@
     "dist"
   ],
   "scripts": {
-    "test": "node dist/testutils.js",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
     "build": "tsc",
     "prepublishOnly": "pnpm build"
   },
@@ -31,6 +32,7 @@
     "typescript": "^5.9.2"
   },
   "devDependencies": {
-    "@types/node": "^24.2.0"
+    "@types/node": "^24.2.0",
+    "vitest": "^1.6.1"
   }
 }
