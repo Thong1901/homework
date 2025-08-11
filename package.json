@@ -1,6 +1,6 @@
 {
   "name": "@thong190103/expressplus",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Express-like server and HTTP-style math utilities",
   "main": "./dist/expressplus.js",
   "exports": {
@@ -12,8 +12,6 @@
     "dist"
   ],
   "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest watch",
     "build": "tsc",
     "prepublishOnly": "pnpm build"
   },
@@ -32,7 +30,6 @@
     "typescript": "^5.9.2"
   },
   "devDependencies": {
-    "@types/node": "^24.2.0",
-    "vitest": "^1.6.1"
+    "@types/node": "^24.2.0"
   }
 }
