@@ -1,162 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ExpressPlus = void 0;
 var node_http_1 = require("node:http");
 var node_url_1 = require("node:url");
-// MathUtils class implementation
-var MathUtils = /** @class */ (function () {
-    function MathUtils() {
-        this.routes = {};
-        this.routes = {
-            'GET': {},
-            'POST': {},
-            'PUT': {},
-            'DELETE': {},
-            'PATCH': {}
-        };
-        this.registerOperations();
-    }
-    MathUtils.prototype.registerOperations = function () {
-        this.get('/sum', this.sum.bind(this));
-        this.post('/sum', this.sum.bind(this));
-        this.put('/sum', this.sum.bind(this));
-        this.delete('/sum', this.sum.bind(this));
-        this.patch('/sum', this.sum.bind(this));
-        this.get('/sub', this.sub.bind(this));
-        this.post('/sub', this.sub.bind(this));
-        this.put('/sub', this.sub.bind(this));
-        this.delete('/sub', this.sub.bind(this));
-        this.patch('/sub', this.sub.bind(this));
-        this.get('/mul', this.mul.bind(this));
-        this.post('/mul', this.mul.bind(this));
-        this.put('/mul', this.mul.bind(this));
-        this.delete('/mul', this.mul.bind(this));
-        this.patch('/mul', this.mul.bind(this));
-        this.get('/div', this.div.bind(this));
-        this.post('/div', this.div.bind(this));
-        this.put('/div', this.div.bind(this));
-        this.delete('/div', this.div.bind(this));
-        this.patch('/div', this.div.bind(this));
-        this.get('/mod', this.mod.bind(this));
-        this.post('/mod', this.mod.bind(this));
-        this.put('/mod', this.mod.bind(this));
-        this.delete('/mod', this.mod.bind(this));
-        this.patch('/mod', this.mod.bind(this));
-    };
-    MathUtils.prototype.sum = function () {
-        var numbers = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            numbers[_i] = arguments[_i];
-        }
-        if (numbers.length === 0)
-            return 0;
-        return numbers.reduce(function (acc, num) { return acc + num; }, 0);
-    };
-    MathUtils.prototype.sub = function (first) {
-        var rest = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            rest[_i - 1] = arguments[_i];
-        }
-        if (rest.length === 0)
-            return first;
-        return rest.reduce(function (acc, num) { return acc - num; }, first);
-    };
-    MathUtils.prototype.mul = function (number) {
-        var rest = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            rest[_i - 1] = arguments[_i];
-        }
-        if (rest.length === 0)
-            return number;
-        return rest.reduce(function (acc, num) { return acc * num; }, number);
-    };
-    MathUtils.prototype.div = function (first) {
-        var rest = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            rest[_i - 1] = arguments[_i];
-        }
-        if (rest.length === 0)
-            return first;
-        if (rest.some(function (num) { return num === 0; })) {
-            throw new Error("Division by zero is not allowed");
-        }
-        return rest.reduce(function (acc, num) { return acc / num; }, first);
-    };
-    MathUtils.prototype.mod = function (first) {
-        var rest = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            rest[_i - 1] = arguments[_i];
-        }
-        if (rest.length === 0)
-            return first;
-        return rest.reduce(function (acc, num) { return acc % num; }, first);
-    };
-    MathUtils.prototype.addRoute = function (method, path, handler) {
-        this.routes[method][path] = handler;
-    };
-    MathUtils.prototype.get = function (path) {
-        var _a;
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-        if (args.length === 1 && typeof args[0] === 'function') {
-            this.addRoute('GET', path, args[0]);
-            return;
-        }
-        return (_a = this.routes['GET'])[path].apply(_a, args);
-    };
-    MathUtils.prototype.post = function (path) {
-        var _a;
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-        if (args.length === 1 && typeof args[0] === 'function') {
-            this.addRoute('POST', path, args[0]);
-            return;
-        }
-        return (_a = this.routes['POST'])[path].apply(_a, args);
-    };
-    MathUtils.prototype.put = function (path) {
-        var _a;
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-        if (args.length === 1 && typeof args[0] === 'function') {
-            this.addRoute('PUT', path, args[0]);
-            return;
-        }
-        return (_a = this.routes['PUT'])[path].apply(_a, args);
-    };
-    MathUtils.prototype.delete = function (path) {
-        var _a;
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-        if (args.length === 1 && typeof args[0] === 'function') {
-            this.addRoute('DELETE', path, args[0]);
-            return;
-        }
-        return (_a = this.routes['DELETE'])[path].apply(_a, args);
-    };
-    MathUtils.prototype.patch = function (path) {
-        var _a;
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-        if (args.length === 1 && typeof args[0] === 'function') {
-            this.addRoute('PATCH', path, args[0]);
-            return;
-        }
-        return (_a = this.routes['PATCH'])[path].apply(_a, args);
-    };
-    return MathUtils;
-}());
-// Create singleton instance of MathUtils
-// ExpressPlus class implementation
 var ExpressPlus = /** @class */ (function () {
     function ExpressPlus() {
         this.routes = {};
@@ -227,6 +73,7 @@ var ExpressPlus = /** @class */ (function () {
     };
     return ExpressPlus;
 }());
+exports.ExpressPlus = ExpressPlus;
 var app = new ExpressPlus();
 app.get('/users', function (req, res) {
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -248,5 +95,4 @@ app.delete('/users/:id', function (req, res) {
     res.writeHead(204);
     res.end();
 });
-var mathUtils = new MathUtils();
-exports.default = { ExpressPlus: ExpressPlus, mathUtils: mathUtils };
+exports.default = ExpressPlus;
