@@ -2,7 +2,7 @@
   "name": "@thong190103/expressplus",
   "version": "1.0.11",
   "description": "Express-like server and HTTP-style math utilities",
-  "main": "./dist/expressplus.js",
+  "main": "./dist/src/users.js",
   "exports": {
     ".": "./dist/expressplus.js",
     "./express": "./dist/expressplus.js",
@@ -26,7 +26,9 @@
   "license": "ISC",
   "packageManager": "pnpm@10.13.1",
   "dependencies": {
+    "@types/pg": "^8.15.5",
     "jiti": "^2.5.1",
+    "pg": "^8.16.3",
     "typescript": "^5.9.2"
   },
   "devDependencies": {
