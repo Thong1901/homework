@@ -1,6 +1,6 @@
 {
   "name": "@thong190103/expressplus",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Express-like server and HTTP-style math utilities",
   "main": "./dist/src/users.js",
   "exports": {
