@@ -53,18 +53,23 @@ var node_url_1 = require("node:url");
 var ExpressPlus = /** @class */ (function () {
     function ExpressPlus() {
         this.routes = {};
+        this.middleware = [];
     }
     Object.defineProperty(ExpressPlus, "STATUS", {
-        // Static method để access status codes
+        // Static method to access status codes
         get: function () {
             return ExpressPlus.STATUS_CODES;
         },
         enumerable: false,
         configurable: true
     });
-    // Static method để access status messages
+    // Static method to access status messages
     ExpressPlus.getStatusMessage = function (code) {
         return ExpressPlus.STATUS_MESSAGES[code] || 'Unknown Status';
+    };
+    // Middleware support
+    ExpressPlus.prototype.use = function (middleware) {
+        this.middleware.push(middleware);
     };
     ExpressPlus.prototype.addRoute = function (method, path, handler) {
         this.routes[method] = this.routes[method] || {};
@@ -114,21 +119,24 @@ var ExpressPlus = /** @class */ (function () {
     };
     // Parse request body
     ExpressPlus.prototype.parseBody = function (req) {
-        return new Promise(function (resolve, reject) {
-            var body = '';
-            req.on('data', function (chunk) {
-                body += chunk.toString();
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, new Promise(function (resolve, reject) {
+                        var body = '';
+                        req.on('data', function (chunk) {
+                            body += chunk.toString();
+                        });
+                        req.on('end', function () {
+                            try {
+                                resolve(body ? JSON.parse(body) : {});
+                            }
+                            catch (error) {
+                                reject(new Error('Invalid JSON'));
+                            }
+                        });
+                        req.on('error', reject);
+                    })];
             });
-            req.on('end', function () {
-                try {
-                    var parsed = body ? JSON.parse(body) : {};
-                    resolve(parsed);
-                }
-                catch (error) {
-                    resolve({});
-                }
-            });
-            req.on('error', reject);
         });
     };
     // Helper method to parse cookies
@@ -148,42 +156,34 @@ var ExpressPlus = /** @class */ (function () {
     ExpressPlus.prototype.serializeCookie = function (name, value, options) {
         if (options === void 0) { options = {}; }
         var cookie = "".concat(name, "=").concat(value);
-        if (options.maxAge) {
+        if (options.maxAge)
             cookie += "; Max-Age=".concat(options.maxAge);
-        }
-        if (options.expires) {
+        if (options.expires)
             cookie += "; Expires=".concat(options.expires.toUTCString());
-        }
-        if (options.path) {
+        if (options.path)
             cookie += "; Path=".concat(options.path);
-        }
-        if (options.domain) {
+        if (options.domain)
             cookie += "; Domain=".concat(options.domain);
-        }
-        if (options.secure) {
+        if (options.secure)
             cookie += '; Secure';
-        }
-        if (options.httpOnly) {
+        if (options.httpOnly)
             cookie += '; HttpOnly';
-        }
-        if (options.sameSite) {
+        if (options.sameSite)
             cookie += "; SameSite=".concat(options.sameSite);
-        }
         return cookie;
     };
-    // Extend response object with Express-like methods
+    // Extend response object
     ExpressPlus.prototype.extendResponse = function (res) {
+        var _this = this;
         var extendedRes = res;
-        // Store properties on response object
-        extendedRes._statusCode = 200;
+        // Store headers and status code
         extendedRes._headers = {};
+        extendedRes._statusCode = 200;
         // json method
         extendedRes.json = function (data) {
             if (res.headersSent)
                 return;
-            var statusCode = extendedRes._statusCode || 200;
-            var headers = __assign({ 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Authorization' }, extendedRes._headers);
-            res.writeHead(statusCode, headers);
+            res.writeHead(extendedRes._statusCode, __assign({ 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Authorization' }, extendedRes._headers));
             res.end(JSON.stringify(data));
         };
         // status method
@@ -195,76 +195,58 @@ var ExpressPlus = /** @class */ (function () {
         extendedRes.send = function (data) {
             if (res.headersSent)
                 return;
-            var statusCode = extendedRes._statusCode || 200;
             var headers = __assign({ 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Authorization' }, extendedRes._headers);
             if (typeof data === 'object' && data !== null) {
                 headers['Content-Type'] = 'application/json';
-                res.writeHead(statusCode, headers);
+                res.writeHead(extendedRes._statusCode, headers);
                 res.end(JSON.stringify(data));
             }
             else {
                 headers['Content-Type'] = 'text/plain';
-                res.writeHead(statusCode, headers);
+                res.writeHead(extendedRes._statusCode, headers);
                 res.end(String(data));
             }
         };
         // sendStatus method
         extendedRes.sendStatus = function (code) {
-            var message = ExpressPlus.STATUS_MESSAGES[code] || 'Unknown Status';
-            extendedRes.status(code).send(message);
+            extendedRes.status(code).send(ExpressPlus.STATUS_MESSAGES[code] || 'Unknown Status');
         };
         // redirect method
         extendedRes.redirect = function (statusOrUrl, url) {
             if (res.headersSent)
                 return;
-            var redirectStatus = 302;
+            var status = 302;
             var redirectUrl;
             if (typeof statusOrUrl === 'string') {
                 redirectUrl = statusOrUrl;
             }
             else {
-                redirectStatus = statusOrUrl;
+                status = statusOrUrl;
                 redirectUrl = url;
             }
-            var headers = __assign({ 'Location': redirectUrl, 'Access-Control-Allow-Origin': '*' }, extendedRes._headers);
-            res.writeHead(redirectStatus, headers);
+            res.writeHead(status, __assign({ 'Location': redirectUrl, 'Access-Control-Allow-Origin': '*' }, extendedRes._headers));
             res.end();
         };
-        // cookie method
-        // extendedRes.cookie = (name: string, value: string, options: any = {}) => {
-        //     const cookieString = this.serializeCookie(name, value, options);
-        //     const existingCookies = res.getHeader('Set-Cookie') || [];
-        //     const cookies = Array.isArray(existingCookies) ? existingCookies : [existingCookies];
-        //     cookies.push(cookieString);
-        //     res.setHeader('Set-Cookie', cookies);
-        //     return extendedRes;
-        // };
-        // // clearCookie method
-        // extendedRes.clearCookie = (name: string, options: any = {}) => {
-        //     const clearOptions = { ...options, expires: new Date(1), maxAge: 0 };
-        //     return extendedRes.cookie(name, '', clearOptions);
-        // };
-        // type method (set Content-Type)
+        // type method
         extendedRes.type = function (contentType) {
             var mimeTypes = {
-                'html': 'text/html',
-                'json': 'application/json',
-                'xml': 'application/xml',
-                'txt': 'text/plain',
-                'css': 'text/css',
-                'js': 'application/javascript',
-                'pdf': 'application/pdf',
-                'png': 'image/png',
-                'jpg': 'image/jpeg',
-                'jpeg': 'image/jpeg',
-                'gif': 'image/gif',
-                'svg': 'image/svg+xml'
+                html: 'text/html',
+                json: 'application/json',
+                xml: 'application/xml',
+                txt: 'text/plain',
+                css: 'text/css',
+                js: 'application/javascript',
+                pdf: 'application/pdf',
+                png: 'image/png',
+                jpg: 'image/jpeg',
+                jpeg: 'image/jpeg',
+                gif: 'image/gif',
+                svg: 'image/svg+xml',
             };
-            var fullType = mimeTypes[contentType] || contentType;
-            extendedRes._headers['Content-Type'] = fullType;
+            extendedRes._headers['Content-Type'] = mimeTypes[contentType] || contentType;
             return extendedRes;
         };
-        // set method (set headers)
+        // set method
         extendedRes.set = function (field, value) {
             if (typeof field === 'string' && value !== undefined) {
                 extendedRes._headers[field] = value;
@@ -274,25 +256,44 @@ var ExpressPlus = /** @class */ (function () {
             }
             return extendedRes;
         };
-        // get method (get header)
+        // get method
         extendedRes.get = function (field) {
             return extendedRes._headers[field] || res.getHeader(field);
+        };
+        // clearCookie method
+        extendedRes.clearCookie = function (name, options) {
+            if (options === void 0) { options = {}; }
+            var clearOptions = __assign(__assign({}, options), { expires: new Date(1), maxAge: 0 });
+            var cookieString = _this.serializeCookie(name, '', clearOptions);
+            var existingCookiesHeader = res.getHeader('Set-Cookie');
+            // Ensure 'cookies' is always a string array
+            var cookies = [];
+            if (Array.isArray(existingCookiesHeader)) {
+                cookies = existingCookiesHeader;
+            }
+            else if (existingCookiesHeader) {
+                // Coerce to string if it's a number or string
+                cookies = [String(existingCookiesHeader)];
+            }
+            cookies.push(cookieString);
+            res.setHeader('Set-Cookie', cookies); // No more error!
+            return extendedRes;
         };
         return extendedRes;
     };
     ExpressPlus.prototype.listen = function (port, callback) {
         var _this = this;
         var server = (0, node_http_1.createServer)(function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-            var method, url, path, _a, handler, params, extendedReq, _b, error_1, extendedRes, error_2;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var method, url, path, extendedReq, extendedRes, _a, _b, handler, params, _loop_2, _i, _c, middleware, error_1;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
-                        // FIX: Thêm CORS preflight handling
+                        // Handle CORS preflight requests
                         if (req.method === 'OPTIONS') {
                             res.writeHead(200, {
                                 'Access-Control-Allow-Origin': '*',
                                 'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-                                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+                                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
                             });
                             res.end();
                             return [2 /*return*/];
@@ -300,196 +301,94 @@ var ExpressPlus = /** @class */ (function () {
                         method = req.method || 'GET';
                         url = (0, node_url_1.parse)(req.url || '', true);
                         path = url.pathname || '';
-                        _a = this.matchRoute(method, path), handler = _a.handler, params = _a.params;
-                        if (!handler) return [3 /*break*/, 9];
-                        _c.label = 1;
-                    case 1:
-                        _c.trys.push([1, 7, , 8]);
                         extendedReq = req;
-                        extendedReq.params = params;
-                        extendedReq.query = url.query;
-                        if (!['POST', 'PUT', 'PATCH'].includes(method)) return [3 /*break*/, 5];
-                        _c.label = 2;
-                    case 2:
-                        _c.trys.push([2, 4, , 5]);
-                        _b = extendedReq;
-                        return [4 /*yield*/, this.parseBody(req)];
-                    case 3:
-                        _b.body = _c.sent();
-                        return [3 /*break*/, 5];
-                    case 4:
-                        error_1 = _c.sent();
-                        extendedReq.body = {};
-                        return [3 /*break*/, 5];
-                    case 5:
                         extendedRes = this.extendResponse(res);
-                        // Call handler - FIX: Thêm await để handle async functions
-                        return [4 /*yield*/, handler(extendedReq, extendedRes)];
-                    case 6:
-                        // Call handler - FIX: Thêm await để handle async functions
-                        _c.sent();
-                        return [3 /*break*/, 8];
-                    case 7:
-                        error_2 = _c.sent();
-                        // FIX: Error handling cho handler
-                        console.error('Handler error:', error_2);
-                        if (!res.headersSent) {
-                            res.writeHead(500, {
-                                'Content-Type': 'application/json',
-                                'Access-Control-Allow-Origin': '*'
+                        _d.label = 1;
+                    case 1:
+                        _d.trys.push([1, 12, , 13]);
+                        if (!['POST', 'PUT', 'PATCH'].includes(method)) return [3 /*break*/, 3];
+                        _a = extendedReq;
+                        return [4 /*yield*/, this.parseBody(req)];
+                    case 2:
+                        _a.body = _d.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        extendedReq.body = {};
+                        _d.label = 4;
+                    case 4:
+                        // Set query and params
+                        extendedReq.query = url.query;
+                        _b = this.matchRoute(method, path), handler = _b.handler, params = _b.params;
+                        extendedReq.params = params;
+                        _loop_2 = function (middleware) {
+                            return __generator(this, function (_e) {
+                                switch (_e.label) {
+                                    case 0: return [4 /*yield*/, new Promise(function (resolve, reject) {
+                                            middleware(extendedReq, extendedRes, function (err) { return (err ? reject(err) : resolve()); });
+                                        })];
+                                    case 1:
+                                        _e.sent();
+                                        return [2 /*return*/];
+                                }
                             });
-                            res.end(JSON.stringify({ error: 'Internal Server Error' }));
-                        }
-                        return [3 /*break*/, 8];
-                    case 8: return [3 /*break*/, 10];
+                        };
+                        _i = 0, _c = this.middleware;
+                        _d.label = 5;
+                    case 5:
+                        if (!(_i < _c.length)) return [3 /*break*/, 8];
+                        middleware = _c[_i];
+                        return [5 /*yield**/, _loop_2(middleware)];
+                    case 6:
+                        _d.sent();
+                        _d.label = 7;
+                    case 7:
+                        _i++;
+                        return [3 /*break*/, 5];
+                    case 8:
+                        if (!handler) return [3 /*break*/, 10];
+                        return [4 /*yield*/, handler(extendedReq, extendedRes)];
                     case 9:
-                        res.writeHead(404, {
-                            'Content-Type': 'application/json',
-                            'Access-Control-Allow-Origin': '*'
-                        });
-                        res.end(JSON.stringify({ error: 'Not Found' }));
-                        _c.label = 10;
-                    case 10: return [2 /*return*/];
+                        _d.sent();
+                        return [3 /*break*/, 11];
+                    case 10:
+                        extendedRes.status(404).json({ success: false, error: 'Not Found' });
+                        _d.label = 11;
+                    case 11: return [3 /*break*/, 13];
+                    case 12:
+                        error_1 = _d.sent();
+                        console.error('Handler error:', error_1);
+                        if (!res.headersSent) {
+                            extendedRes.status(500).json({ success: false, error: 'Internal Server Error' });
+                        }
+                        return [3 /*break*/, 13];
+                    case 13: return [2 /*return*/];
                 }
             });
         }); });
         server.listen(port, callback);
-        return server; // FIX: Return server instance để có thể close nếu cần
+        return server;
     };
-    // HTTP Status Codes Constants
+    // Static status codes
     ExpressPlus.STATUS_CODES = {
-        // 1xx Informational
         CONTINUE: 100,
-        SWITCHING_PROTOCOLS: 101,
-        PROCESSING: 102,
-        EARLY_HINTS: 103,
-        // 2xx Success
         OK: 200,
         CREATED: 201,
-        ACCEPTED: 202,
-        NON_AUTHORITATIVE_INFORMATION: 203,
         NO_CONTENT: 204,
-        RESET_CONTENT: 205,
-        PARTIAL_CONTENT: 206,
-        MULTI_STATUS: 207,
-        ALREADY_REPORTED: 208,
-        IM_USED: 226,
-        // 3xx Redirection
-        MULTIPLE_CHOICES: 300,
-        MOVED_PERMANENTLY: 301,
-        FOUND: 302,
-        SEE_OTHER: 303,
-        NOT_MODIFIED: 304,
-        USE_PROXY: 305,
-        TEMPORARY_REDIRECT: 307,
-        PERMANENT_REDIRECT: 308,
-        // 4xx Client Error
         BAD_REQUEST: 400,
-        UNAUTHORIZED: 401,
-        PAYMENT_REQUIRED: 402,
-        FORBIDDEN: 403,
         NOT_FOUND: 404,
-        METHOD_NOT_ALLOWED: 405,
-        NOT_ACCEPTABLE: 406,
-        PROXY_AUTHENTICATION_REQUIRED: 407,
-        REQUEST_TIMEOUT: 408,
-        CONFLICT: 409,
-        GONE: 410,
-        LENGTH_REQUIRED: 411,
-        PRECONDITION_FAILED: 412,
-        PAYLOAD_TOO_LARGE: 413,
-        URI_TOO_LONG: 414,
-        UNSUPPORTED_MEDIA_TYPE: 415,
-        RANGE_NOT_SATISFIABLE: 416,
-        EXPECTATION_FAILED: 417,
-        IM_A_TEAPOT: 418,
-        MISDIRECTED_REQUEST: 421,
-        UNPROCESSABLE_ENTITY: 422,
-        LOCKED: 423,
-        FAILED_DEPENDENCY: 424,
-        TOO_EARLY: 425,
-        UPGRADE_REQUIRED: 426,
-        PRECONDITION_REQUIRED: 428,
-        TOO_MANY_REQUESTS: 429,
-        REQUEST_HEADER_FIELDS_TOO_LARGE: 431,
-        UNAVAILABLE_FOR_LEGAL_REASONS: 451,
-        // 5xx Server Error
         INTERNAL_SERVER_ERROR: 500,
-        NOT_IMPLEMENTED: 501,
-        BAD_GATEWAY: 502,
-        SERVICE_UNAVAILABLE: 503,
-        GATEWAY_TIMEOUT: 504,
-        HTTP_VERSION_NOT_SUPPORTED: 505,
-        VARIANT_ALSO_NEGOTIATES: 506,
-        INSUFFICIENT_STORAGE: 507,
-        LOOP_DETECTED: 508,
-        NOT_EXTENDED: 510,
-        NETWORK_AUTHENTICATION_REQUIRED: 511
+        // Add more as needed
     };
-    // Status Messages
+    // Static status messages
     ExpressPlus.STATUS_MESSAGES = {
         100: 'Continue',
-        101: 'Switching Protocols',
-        102: 'Processing',
-        103: 'Early Hints',
         200: 'OK',
         201: 'Created',
-        202: 'Accepted',
-        203: 'Non-Authoritative Information',
         204: 'No Content',
-        205: 'Reset Content',
-        206: 'Partial Content',
-        207: 'Multi-Status',
-        208: 'Already Reported',
-        226: 'IM Used',
-        300: 'Multiple Choices',
-        301: 'Moved Permanently',
-        302: 'Found',
-        303: 'See Other',
-        304: 'Not Modified',
-        305: 'Use Proxy',
-        307: 'Temporary Redirect',
-        308: 'Permanent Redirect',
         400: 'Bad Request',
-        401: 'Unauthorized',
-        402: 'Payment Required',
-        403: 'Forbidden',
         404: 'Not Found',
-        405: 'Method Not Allowed',
-        406: 'Not Acceptable',
-        407: 'Proxy Authentication Required',
-        408: 'Request Timeout',
-        409: 'Conflict',
-        410: 'Gone',
-        411: 'Length Required',
-        412: 'Precondition Failed',
-        413: 'Payload Too Large',
-        414: 'URI Too Long',
-        415: 'Unsupported Media Type',
-        416: 'Range Not Satisfiable',
-        417: 'Expectation Failed',
-        418: "I'm a Teapot",
-        421: 'Misdirected Request',
-        422: 'Unprocessable Entity',
-        423: 'Locked',
-        424: 'Failed Dependency',
-        425: 'Too Early',
-        426: 'Upgrade Required',
-        428: 'Precondition Required',
-        429: 'Too Many Requests',
-        431: 'Request Header Fields Too Large',
-        451: 'Unavailable For Legal Reasons',
         500: 'Internal Server Error',
-        501: 'Not Implemented',
-        502: 'Bad Gateway',
-        503: 'Service Unavailable',
-        504: 'Gateway Timeout',
-        505: 'HTTP Version Not Supported',
-        506: 'Variant Also Negotiates',
-        507: 'Insufficient Storage',
-        508: 'Loop Detected',
-        510: 'Not Extended',
-        511: 'Network Authentication Required'
+        // Add more as needed
     };
     return ExpressPlus;
 }());
