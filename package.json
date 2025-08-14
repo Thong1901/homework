@@ -1,8 +1,8 @@
 {
   "name": "@thong190103/expressplus",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "description": "Express-like server and HTTP-style math utilities",
-  "main": "./dist/expressplus.js",
+  "main": "./dist/src/expressplus.js",
   "exports": {
     ".": "./dist/expressplus.js",
     "./express": "./dist/expressplus.js",
